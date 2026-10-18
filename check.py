@@ -57,14 +57,23 @@ def main():
             user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                         "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"),
         )
-        page.goto(URL, timeout=90000, wait_until="domcontentloaded")
-        try:
-            page.wait_for_load_state("networkidle", timeout=30000)
-        except Exception:
-            pass
-        page.wait_for_timeout(8000)  # 等房價載入
-        title = page.title()
-        text = page.inner_text("body")
+        text, title = "", ""
+        for attempt in range(3):  # 空白頁面就等一下再重試，最多 3 次
+            if attempt == 0:
+                page.goto(URL, timeout=90000, wait_until="domcontentloaded")
+            else:
+                print(f"頁面空白，第 {attempt} 次重試")
+                page.wait_for_timeout(20000)
+                page.reload(timeout=90000, wait_until="domcontentloaded")
+            try:
+                page.wait_for_load_state("networkidle", timeout=30000)
+            except Exception:
+                pass
+            page.wait_for_timeout(10000)  # 等房價載入
+            title = page.title()
+            text = page.inner_text("body")
+            if len(text.strip()) >= 100:
+                break
         page.screenshot(path="page.png", full_page=True)
         browser.close()
 
@@ -103,7 +112,7 @@ if __name__ == "__main__":
     except Exception as e:
         print("查詢失敗：", e)
         try:
-            notify(f"查詢失敗：{e}", "Check failed")
+            notify(f"這次沒抓到（下次會再試）：{e}", "Check failed", "low")
         except Exception:
             pass
         sys.exit(1)

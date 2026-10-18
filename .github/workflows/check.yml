@@ -1,4 +1,4 @@
-# 自己接力：每輪跑約 5 小時、每 10 分鐘查一次，結束前自動啟動下一輪
+# 自己接力：每輪跑約 1 小時（換新機器、新 IP）、每 10 分鐘查一次，結束前自動啟動下一輪
 # 要停止：Actions → check-double-room → ⋯ → Disable workflow
 name: check-double-room
 
@@ -18,22 +18,22 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install playwright && playwright install --with-deps chromium
-      - name: Check every 10 minutes for ~5 hours
+      - name: Check every 10 minutes for ~1 hour
         env:
           BOOKING_URL: ${{ secrets.BOOKING_URL }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: |
-          for i in $(seq 1 30); do
+          for i in $(seq 1 6); do
             echo "===== 第 $i 次 $(TZ=Asia/Taipei date '+%m/%d %H:%M') ====="
             python check.py || true
-            [ "$i" -lt 30 ] && sleep 600
+            [ "$i" -lt 6 ] && sleep 600 || true
           done
       - name: Start next round
         if: always()
