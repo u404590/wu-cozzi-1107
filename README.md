@@ -1,6 +1,6 @@
 # 和逸飯店‧桃園館 11/7 雙人房監控
 
-GitHub Actions 每 30 分鐘打開訂房頁，出現雙人房就用 ntfy 推播到手機。
+GitHub Actions 每 10 分鐘打開訂房頁，每次都用 ntfy 推播結果到手機（有雙人房時用緊急通知）。
 
 ## 要設定的 Secrets（Settings → Secrets and variables → Actions）
 - `BOOKING_URL`：訂房網站上 11/7 入住、11/8 退房、2 大人的搜尋結果頁網址

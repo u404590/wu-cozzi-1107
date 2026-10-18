@@ -8,11 +8,11 @@ NTFY_TOPIC = os.environ["NTFY_TOPIC"]    # 你自己取的 ntfy 頻道名稱（�
 KEYWORDS = ["雙人", "Double", "Twin"]     # 依網站實際房型名稱調整
 EXCLUDE = ["四人", "Quad", "售完", "已售完", "額滿", "Sold out"]
 
-def notify(msg):
+def notify(msg, title, priority="default"):
     req = urllib.request.Request(
         f"https://ntfy.sh/{NTFY_TOPIC}",
         data=msg.encode("utf-8"),
-        headers={"Title": "Double room available!", "Priority": "high", "Click": URL},
+        headers={"Title": title, "Priority": priority, "Click": URL},
     )
     urllib.request.urlopen(req, timeout=30)
 
@@ -29,9 +29,11 @@ def main():
              if any(k in l for k in KEYWORDS) and not any(e in l for e in EXCLUDE)]
     if found:
         print("有雙人房：", found[:5])
-        notify("和逸桃園館 11/7 有雙人房了！\n" + "\n".join(found[:5]))
+        notify("和逸桃園館 11/7 有雙人房了！快去訂！\n" + "\n".join(found[:5]),
+               "Double room AVAILABLE!", "urgent")
     else:
         print("還沒有雙人房")
+        notify("和逸桃園館 11/7 還沒有雙人房", "No double room yet", "low")
         print(text[:1500])  # 方便在 Actions 紀錄裡檢查有沒有抓到頁面
 
 if __name__ == "__main__":
@@ -39,4 +41,8 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         print("查詢失敗：", e)
+        try:
+            notify(f"查詢失敗：{e}", "Check failed")
+        except Exception:
+            pass
         sys.exit(1)
