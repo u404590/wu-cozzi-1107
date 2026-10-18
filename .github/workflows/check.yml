@@ -1,0 +1,22 @@
+# 放在 repo 的 .github/workflows/check.yml
+name: check-double-room
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # 每 30 分鐘（GitHub 可能延遲幾分鐘）
+  workflow_dispatch:          # 可手動按 Run 測試
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install playwright && playwright install --with-deps chromium
+      - run: python check.py
+        env:
+          BOOKING_URL: ${{ secrets.BOOKING_URL }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
