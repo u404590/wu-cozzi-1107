@@ -19,11 +19,30 @@ def notify(msg, title, priority="default"):
 def main():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page(locale="zh-TW")
-        page.goto(URL, timeout=60000)
-        page.wait_for_timeout(10000)  # 等房價載入
+        page = browser.new_page(
+            locale="zh-TW",
+            timezone_id="Asia/Taipei",
+            viewport={"width": 1366, "height": 900},
+            user_agent=("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                        "(KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"),
+        )
+        page.goto(URL, timeout=90000, wait_until="domcontentloaded")
+        try:
+            page.wait_for_load_state("networkidle", timeout=30000)
+        except Exception:
+            pass
+        page.wait_for_timeout(8000)  # 等房價載入
+        title = page.title()
+        final_url = page.url
         text = page.inner_text("body")
+        page.screenshot(path="page.png", full_page=True)
         browser.close()
+
+    print("頁面標題：", title)
+    print("實際網址：", final_url)
+    print("文字長度：", len(text))
+    if len(text.strip()) < 100:
+        raise RuntimeError(f"頁面沒有內容（可能被擋或還沒載入）標題：{title}")
 
     found = [l.strip() for l in text.splitlines()
              if any(k in l for k in KEYWORDS) and not any(e in l for e in EXCLUDE)]

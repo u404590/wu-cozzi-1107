@@ -20,3 +20,10 @@ jobs:
         env:
           BOOKING_URL: ${{ secrets.BOOKING_URL }}
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: page-screenshot
+          path: page.png
+          retention-days: 1
+          if-no-files-found: ignore
